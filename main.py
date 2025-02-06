@@ -1,3 +1,5 @@
+import sys
+
 def somaNum(n1,operador,n2):
     if operador == '+':
         return n1 + n2
@@ -62,8 +64,8 @@ def calculator(string):
 
     string = string.strip()
     tokens = analiseLexica(string)
-    print(tokens)
-    print(analiseSemantica(tokens))
+    # print(tokens)
+    # print(analiseSemantica(tokens))
     if not analiseSemantica(tokens):
         raise Exception("Entrada invalida")
     soma = int(tokens[0])
@@ -78,3 +80,7 @@ def calculator(string):
             soma -= numero
 
     return soma
+
+if __name__ == "__main__":
+    string = sys.argv[1]
+    print(calculator(string))
