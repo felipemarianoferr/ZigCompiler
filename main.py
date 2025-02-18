@@ -95,5 +95,5 @@ class Parser:
         return resultado
 
 if __name__ == "__main__":
-    source = '2+5*4'
+    source = sys.argv[1]
     print(Parser.run(source))
