@@ -10,7 +10,7 @@ class Tokenizer:
         self.source = source
         self.position = 0
         self.next = None
-        self.num = ['0', '1', '2', '3', '4', '5 ', '6', '7', '8', '9']
+        self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.selectNext()
 
     def selectNext(self):
@@ -95,5 +95,5 @@ class Parser:
         return resultado
 
 if __name__ == "__main__":
-    source = sys.argv[1]
+    source = '2+5*4'
     print(Parser.run(source))
