@@ -11,6 +11,7 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5 ', '6', '7', '8', '9']
+        self.selectNext()
 
     def selectNext(self):
 
@@ -45,45 +46,33 @@ class Parser:
 
     tokenizer = None
 
-        
     def parseExpression():
-
-        sum = 0
-        lastType = Parser.tokenizer.next.tipoToken
-        lastValue = Parser.tokenizer.next.valorToken
-        if lastType == 'INT':
-            sum += lastValue
+        if Parser.tokenizer.next.tipoToken == 'INT':
+            resultado = Parser.tokenizer.next.valorToken
             Parser.tokenizer.selectNext()
-        else:
-            raise Exception("Error")
-            
-        while Parser.tokenizer.next.tipoToken != "EOF":
-
-            if Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
-                if lastType != 'INT':
-                    raise Exception("Error")
-
-            elif Parser.tokenizer.next.tipoToken == 'INT':
-                if lastType == 'PLUS':
-                    sum += Parser.tokenizer.next.valorToken
-                elif lastType == 'MINUS':
-                    sum -= Parser.tokenizer.next.valorToken
-                else:
-                    raise Exception("Error")
-
-            lastType = Parser.tokenizer.next.tipoToken
-            lastValue = Parser.tokenizer.next.valorToken
-            Parser.tokenizer.selectNext()
-        
-        if Parser.tokenizer.next.tipoToken == 'EOF' and lastType != 'INT':
-            raise Exception("Error")
-
-        return sum
-
+            while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
+                if Parser.tokenizer.next.tipoToken == 'PLUS':
+                    Parser.tokenizer.selectNext()
+                    if Parser.tokenizer.next.tipoToken == 'INT':
+                        resultado += Parser.tokenizer.next.valorToken
+                    else:
+                        raise Exception ("Error")
+                if Parser.tokenizer.next.tipoToken == 'MINUS':
+                    Parser.tokenizer.selectNext()
+                    if Parser.tokenizer.next.tipoToken == 'INT':
+                        resultado -= Parser.tokenizer.next.valorToken
+                    else:
+                        raise Exception ("Error")
+                Parser.tokenizer.selectNext()
+            return resultado
+        raise Exception ("Error")
+                
     def run(source):
         Parser.tokenizer = Tokenizer(source)
-        Parser.tokenizer.selectNext()
-        return Parser.parseExpression()
+        resultado = Parser.parseExpression()
+        if Parser.tokenizer.next.tipoToken != 'EOF':
+            raise Exception ("Error")
+        return resultado
 
 if __name__ == "__main__":
     source = sys.argv[1]
