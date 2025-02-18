@@ -30,6 +30,14 @@ class Tokenizer:
                 self.next = Token('MINUS', '-')
                 self.position += 1
             
+            elif self.source[self.position] == '/':
+                self.next = Token('DIV', '/')
+                self.position += 1
+            
+            elif self.source[self.position] == '*':
+                self.next = Token('MULT', '*')
+                self.position += 1
+            
             elif self.source[self.position] in self.num:
                 val = self.source[self.position]
                 self.position += 1
@@ -38,34 +46,46 @@ class Tokenizer:
                     self.position += 1
                 self.next = Token('INT', int(val))
             
-            elif self.source[self.position] not in self.num \
-                and self.source[self.position] not in [' ', '+', '-']:
-                    raise Exception("Erro")
+            else:
+                raise Exception("Error")
         
 class Parser:
 
     tokenizer = None
 
-    def parseExpression():
+    def parseTerm():
         if Parser.tokenizer.next.tipoToken == 'INT':
             resultado = Parser.tokenizer.next.valorToken
             Parser.tokenizer.selectNext()
-            while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
-                if Parser.tokenizer.next.tipoToken == 'PLUS':
+            while Parser.tokenizer.next.tipoToken in ['DIV', 'MULT']:
+                if Parser.tokenizer.next.tipoToken == 'DIV':
                     Parser.tokenizer.selectNext()
-                    if Parser.tokenizer.next.tipoToken == 'INT':
-                        resultado += Parser.tokenizer.next.valorToken
+                    if Parser.tokenizer.next.tipoToken == 'INT' and Parser.tokenizer.next.valorToken != 0:
+                        resultado = resultado // Parser.tokenizer.next.valorToken
                     else:
                         raise Exception ("Error")
-                if Parser.tokenizer.next.tipoToken == 'MINUS':
+                if Parser.tokenizer.next.tipoToken == 'MULT':
                     Parser.tokenizer.selectNext()
                     if Parser.tokenizer.next.tipoToken == 'INT':
-                        resultado -= Parser.tokenizer.next.valorToken
+                        resultado *= Parser.tokenizer.next.valorToken
                     else:
                         raise Exception ("Error")
                 Parser.tokenizer.selectNext()
             return resultado
         raise Exception ("Error")
+
+    def parseExpression():
+        resultado = Parser.parseTerm()
+        while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
+            if Parser.tokenizer.next.tipoToken == 'PLUS':
+                Parser.tokenizer.selectNext()
+                soma = Parser.parseTerm()
+                resultado += soma
+            elif Parser.tokenizer.next.tipoToken == 'MINUS':
+                Parser.tokenizer.selectNext()
+                sub = Parser.parseTerm()
+                resultado -= sub
+        return resultado
                 
     def run(source):
         Parser.tokenizer = Tokenizer(source)
