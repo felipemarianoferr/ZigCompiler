@@ -47,7 +47,7 @@ class Tokenizer:
                 self.next = Token('INT', int(val))
             
             else:
-                raise Exception("Error")
+                raise Exception("Unrecognised letter")
         
 class Parser:
 
@@ -63,16 +63,16 @@ class Parser:
                     if Parser.tokenizer.next.tipoToken == 'INT' and Parser.tokenizer.next.valorToken != 0:
                         resultado = resultado // Parser.tokenizer.next.valorToken
                     else:
-                        raise Exception ("Error")
+                        raise Exception ("Double operator or division by 0")
                 if Parser.tokenizer.next.tipoToken == 'MULT':
                     Parser.tokenizer.selectNext()
                     if Parser.tokenizer.next.tipoToken == 'INT':
                         resultado *= Parser.tokenizer.next.valorToken
                     else:
-                        raise Exception ("Error")
+                        raise Exception ("Double operator")
                 Parser.tokenizer.selectNext()
             return resultado
-        raise Exception ("Error")
+        raise Exception ("Letter must be an Integer")
 
     def parseExpression():
         resultado = Parser.parseTerm()
@@ -91,7 +91,7 @@ class Parser:
         Parser.tokenizer = Tokenizer(source)
         resultado = Parser.parseExpression()
         if Parser.tokenizer.next.tipoToken != 'EOF':
-            raise Exception ("Error")
+            raise Exception ("Unconsumed tokens")
         return resultado
 
 if __name__ == "__main__":
