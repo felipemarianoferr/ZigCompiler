@@ -66,12 +66,12 @@ class Parser:
         while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV']:
             if Parser.tokenizer.next.tipoToken == 'MULT':
                 Parser.tokenizer.selectNext()
-                soma = Parser.parseFactor()
-                resultado *= soma
+                mult = Parser.parseFactor()
+                resultado *= mult
             elif Parser.tokenizer.next.tipoToken == 'DIV':
                 Parser.tokenizer.selectNext()
-                sub = Parser.parseFactor()
-                resultado //= sub
+                div = Parser.parseFactor()
+                resultado //= div
         return resultado
 
     def parseFactor():
