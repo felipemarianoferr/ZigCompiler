@@ -123,5 +123,5 @@ class Parser:
         return resultado
 
 if __name__ == "__main__":
-    # source = sys.argv[1]
-    print(Parser.run("+++2"))
+    source = sys.argv[1]
+    print(Parser.run(source))
