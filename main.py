@@ -45,6 +45,14 @@ class Tokenizer:
                     val += self.source[self.position]
                     self.position += 1
                 self.next = Token('INT', int(val))
+
+            elif self.source[self.position] == '(':
+                self.next = Token('OPEN', '(')
+                self.position += 1
+            
+            elif self.source[self.position] == ')':
+                self.next = Token('CLOSE', ')')
+                self.position += 1
             
             else:
                 raise Exception("Unrecognised letter")
@@ -54,25 +62,44 @@ class Parser:
     tokenizer = None
 
     def parseTerm():
-        if Parser.tokenizer.next.tipoToken == 'INT':
-            resultado = Parser.tokenizer.next.valorToken
-            Parser.tokenizer.selectNext()
-            while Parser.tokenizer.next.tipoToken in ['DIV', 'MULT']:
-                if Parser.tokenizer.next.tipoToken == 'DIV':
-                    Parser.tokenizer.selectNext()
-                    if Parser.tokenizer.next.tipoToken == 'INT' and Parser.tokenizer.next.valorToken != 0:
-                        resultado = resultado // Parser.tokenizer.next.valorToken
-                    else:
-                        raise Exception ("Double operator or division by 0")
-                if Parser.tokenizer.next.tipoToken == 'MULT':
-                    Parser.tokenizer.selectNext()
-                    if Parser.tokenizer.next.tipoToken == 'INT':
-                        resultado *= Parser.tokenizer.next.valorToken
-                    else:
-                        raise Exception ("Double operator")
+        resultado = Parser.parseFactor()
+        while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV']:
+            if Parser.tokenizer.next.tipoToken == 'MULT':
                 Parser.tokenizer.selectNext()
-            return resultado
-        raise Exception ("Letter must be an Integer")
+                soma = Parser.parseFactor()
+                resultado *= soma
+            elif Parser.tokenizer.next.tipoToken == 'DIV':
+                Parser.tokenizer.selectNext()
+                sub = Parser.parseFactor()
+                resultado //= sub
+        return resultado
+
+    def parseFactor():
+
+        if Parser.tokenizer.next.tipoToken == 'INT':
+            value = Parser.tokenizer.next.valorToken
+            Parser.tokenizer.selectNext()
+            return value
+
+        elif Parser.tokenizer.next.tipoToken == 'PLUS':
+            Parser.tokenizer.selectNext()
+            return + Parser.parseFactor()
+
+        elif Parser.tokenizer.next.tipoToken == 'MINUS':
+            Parser.tokenizer.selectNext()
+            return - Parser.parseFactor()
+
+        elif Parser.tokenizer.next.tipoToken == 'OPEN':
+            Parser.tokenizer.selectNext()
+            result = Parser.parseExpression()
+            if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                Parser.tokenizer.selectNext()
+                return result
+            else:
+                raise Exception ("Parenthesis ')' not detected")
+        else:
+            raise Exception
+
 
     def parseExpression():
         resultado = Parser.parseTerm()
@@ -86,7 +113,8 @@ class Parser:
                 sub = Parser.parseTerm()
                 resultado -= sub
         return resultado
-                
+    
+
     def run(source):
         Parser.tokenizer = Tokenizer(source)
         resultado = Parser.parseExpression()
