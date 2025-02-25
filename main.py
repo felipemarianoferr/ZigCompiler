@@ -98,7 +98,7 @@ class Parser:
             else:
                 raise Exception ("Parenthesis ')' not detected")
         else:
-            raise Exception
+            raise Exception ("symbol not recognized")
 
 
     def parseExpression():
@@ -123,5 +123,5 @@ class Parser:
         return resultado
 
 if __name__ == "__main__":
-    source = sys.argv[1]
-    print(Parser.run(source))
+    # source = sys.argv[1]
+    print(Parser.run("+++2"))
