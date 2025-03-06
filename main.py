@@ -172,7 +172,6 @@ class Parser:
     
 
     def run(source):
-        source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
         ast_node = Parser.parseExpression()
         if Parser.tokenizer.next.tipoToken != 'EOF':
@@ -184,8 +183,8 @@ if __name__ == "__main__":
     source = sys.argv[1]
     try:
         with open(source, "r") as arquivo:
-                string = arquivo.read()
+            string = arquivo.read()
     except FileNotFoundError:
         pass
-
+    string = PrePro.filter(string)
     print(Parser.run(string))
