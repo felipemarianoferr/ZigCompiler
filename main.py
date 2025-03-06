@@ -99,6 +99,7 @@ class Tokenizer:
                 self.position += 1
             
             else:
+                print(self.source[self.position])
                 raise Exception("Unrecognised letter")
         
 class Parser:
@@ -187,4 +188,5 @@ if __name__ == "__main__":
     except FileNotFoundError:
         pass
     string = PrePro.filter(string)
+    print(string)
     print(Parser.run(string))
