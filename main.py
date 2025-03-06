@@ -47,8 +47,7 @@ class PrePro:
     regex_comentarios = r"//.*?$"
 
     def filter(source):
-        codigo_sem_comentarios = re.sub(PrePro.regex_comentarios, "", source, flags=re.MULTILINE)
-        return "\n".join([linha for linha in codigo_sem_comentarios.splitlines() if linha.strip()])
+        return re.sub(PrePro.regex_comentarios, "", source, flags=re.MULTILINE)
 
 class Tokenizer:
     def __init__(self, source):
@@ -188,4 +187,4 @@ if __name__ == "__main__":
     except FileNotFoundError:
         pass
     
-    print(Parser.run(source))
+    print(Parser.run(string))
