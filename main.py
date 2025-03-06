@@ -180,13 +180,12 @@ class Parser:
         return ast_node.Evaluate()
 
 if __name__ == "__main__":
-    
+
     source = sys.argv[1]
     try:
-        with open(source, "r", encoding="utf-8") as arquivo:
-                source = arquivo.read()
-
+        with open(source, "r") as arquivo:
+                string = arquivo.read()
     except FileNotFoundError:
         pass
 
-    print(Parser.run(source))
+    print(Parser.run(string))
