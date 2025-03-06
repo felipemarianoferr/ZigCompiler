@@ -47,7 +47,8 @@ class PrePro:
     regex_comentarios = r"//.*?$"
 
     def filter(source):
-        return re.sub(PrePro.regex_comentarios, "", source, flags=re.MULTILINE)
+        codigo_sem_comentarios = re.sub(PrePro.regex_comentarios, "", source, flags=re.MULTILINE)
+        return "\n".join([linha for linha in codigo_sem_comentarios.splitlines() if linha.strip()])
 
 class Tokenizer:
     def __init__(self, source):
@@ -97,9 +98,8 @@ class Tokenizer:
             elif self.source[self.position] == ')':
                 self.next = Token('CLOSE', ')')
                 self.position += 1
-            
             else:
-                raise Exception(f"Unrecognised letter{self.source[self.position]}")
+                raise Exception("Unrecognised letter")
         
 class Parser:
 
@@ -188,4 +188,4 @@ if __name__ == "__main__":
     except FileNotFoundError:
         pass
     
-    print(Parser.run(string))
+    print(Parser.run(source))
