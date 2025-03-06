@@ -99,8 +99,7 @@ class Tokenizer:
                 self.position += 1
             
             else:
-                print(self.source[self.position])
-                raise Exception("Unrecognised letter")
+                raise Exception(f"Unrecognised letter{self.source[self.position]}")
         
 class Parser:
 
@@ -173,6 +172,7 @@ class Parser:
     
 
     def run(source):
+        source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
         ast_node = Parser.parseExpression()
         if Parser.tokenizer.next.tipoToken != 'EOF':
@@ -187,6 +187,5 @@ if __name__ == "__main__":
             string = arquivo.read()
     except FileNotFoundError:
         pass
-    string = PrePro.filter(string)
-    print(string)
+    
     print(Parser.run(string))
