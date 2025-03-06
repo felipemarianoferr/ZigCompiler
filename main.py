@@ -1,10 +1,54 @@
 import sys
-
+import re
 class Token:
     def __init__(self, tipoToken, valorToken):
         self.tipoToken = tipoToken
         self.valorToken = valorToken
-        
+
+class Node():
+
+    def __init__(self, value, children):
+        self.value = value
+        self.children = children
+
+    def Evaluate(self):
+        pass
+
+class BinOp(Node):
+
+    def Evaluate(self):
+        if self.value == '+':
+            return self.children[0].Evaluate() + self.children[1].Evaluate()
+        elif self.value == '-':
+            return self.children[0].Evaluate() - self.children[1].Evaluate()
+        elif self.value == '*':
+            return self.children[0].Evaluate() * self.children[1].Evaluate()
+        elif self.value == '/':
+            return self.children[0].Evaluate() // self.children[1].Evaluate()
+class UnOp(Node):
+
+    def Evaluate(self):
+        if self.value == '-':
+            return -self.children[0].Evaluate()
+        return self.children[0].Evaluate()
+
+class IntVal(Node):
+
+    def Evaluate(self):
+        return self.value
+    
+class NoOp(Node):
+
+    def Evaluate(self):
+        pass
+
+class PrePro:
+
+    regex_comentarios = r"//.*?$"
+
+    def filter(source):
+        return re.sub(PrePro.regex_comentarios, "", source, flags=re.MULTILINE)
+
 class Tokenizer:
     def __init__(self, source):
         self.source = source
@@ -62,32 +106,41 @@ class Parser:
     tokenizer = None
 
     def parseTerm():
-        resultado = Parser.parseFactor()
+        ast_node = Parser.parseFactor()
         while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV']:
             if Parser.tokenizer.next.tipoToken == 'MULT':
                 Parser.tokenizer.selectNext()
-                mult = Parser.parseFactor()
-                resultado *= mult
+                bin_op = BinOp('*', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseFactor())
+                ast_node = bin_op
             elif Parser.tokenizer.next.tipoToken == 'DIV':
                 Parser.tokenizer.selectNext()
-                div = Parser.parseFactor()
-                resultado //= div
-        return resultado
+                bin_op = BinOp('/', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseFactor())
+                ast_node = bin_op
+        return ast_node
 
     def parseFactor():
 
         if Parser.tokenizer.next.tipoToken == 'INT':
             value = Parser.tokenizer.next.valorToken
+            int_val = IntVal(value,[])
             Parser.tokenizer.selectNext()
-            return value
+            return int_val
 
         elif Parser.tokenizer.next.tipoToken == 'PLUS':
             Parser.tokenizer.selectNext()
-            return + Parser.parseFactor()
+            un_op  = UnOp('+', [])
+            un_op.children.append(Parser.parseFactor())
+            return un_op
 
         elif Parser.tokenizer.next.tipoToken == 'MINUS':
             Parser.tokenizer.selectNext()
-            return - Parser.parseFactor()
+            un_op  = UnOp('-', [])
+            un_op.children.append(Parser.parseFactor())
+            return un_op
 
         elif Parser.tokenizer.next.tipoToken == 'OPEN':
             Parser.tokenizer.selectNext()
@@ -96,32 +149,44 @@ class Parser:
                 Parser.tokenizer.selectNext()
                 return result
             else:
-                raise Exception ("Parenthesis ')' not detected")
+                raise Exception ("Parenthesis not detected")
         else:
             raise Exception ("symbol not recognized")
 
-
     def parseExpression():
-        resultado = Parser.parseTerm()
+        ast_node = Parser.parseTerm()
         while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
             if Parser.tokenizer.next.tipoToken == 'PLUS':
                 Parser.tokenizer.selectNext()
-                soma = Parser.parseTerm()
-                resultado += soma
+                bin_op = BinOp('+', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseTerm())
+                ast_node = bin_op
             elif Parser.tokenizer.next.tipoToken == 'MINUS':
                 Parser.tokenizer.selectNext()
-                sub = Parser.parseTerm()
-                resultado -= sub
-        return resultado
+                bin_op = BinOp('-', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseTerm())
+                ast_node = bin_op
+        return ast_node
     
 
     def run(source):
+        source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
-        resultado = Parser.parseExpression()
+        ast_node = Parser.parseExpression()
         if Parser.tokenizer.next.tipoToken != 'EOF':
             raise Exception ("Unconsumed tokens")
-        return resultado
+        return ast_node.Evaluate()
 
 if __name__ == "__main__":
+    
     source = sys.argv[1]
+    try:
+        with open(source, "r", encoding="utf-8") as arquivo:
+                source = arquivo.read()
+
+    except FileNotFoundError:
+        pass
+
     print(Parser.run(source))
