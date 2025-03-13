@@ -90,8 +90,6 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.letters = list(string.ascii_uppercase + string.ascii_lowercase)
-        self.alphanum = self.num + self.letters
         self.reserverd_variables = ['print']
         self.selectNext()
 
@@ -144,11 +142,11 @@ class Tokenizer:
                 self.next = Token('semi_colon', ';')
                 self.position += 1
 
-            elif self.source[self.position] in self.letters:
+            elif self.source[self.position].isalpha():
                 val = ''
                 val += self.source[self.position]
                 self.position += 1
-                while self.source[self.position] in self.alphanum or self.source[self.position] == '_':
+                while self.source[self.position].isalnum() or self.source[self.position] == '_':
                     val  += self.source[self.position]
                     self.position += 1
                 if val in self.reserverd_variables:
