@@ -294,6 +294,7 @@ class Parser:
 
     def run(source):
         source = PrePro.filter(source)
+        source = source.lstrip("\ufeff \t\n\r")
         Parser.tokenizer = Tokenizer(source)
         st = SymbolTable({})
         ast_node = Parser.parseBlock()
