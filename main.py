@@ -1,46 +1,81 @@
 import sys
 import re
+import string
 class Token:
     def __init__(self, tipoToken, valorToken):
         self.tipoToken = tipoToken
         self.valorToken = valorToken
-
+class SymbolTable():
+    def __init__(self, symbols):
+        self.symbols = symbols
+    
+    def getter(self, key):
+        if key in self.symbols:
+            return self.symbols[key]
+        raise Exception("KeyError")
+    
+    def setter(self, key, value):
+        self.symbols[key] = value
+    
 class Node():
 
     def __init__(self, value, children):
         self.value = value
         self.children = children
 
-    def Evaluate(self):
+    def Evaluate(self, st):
         pass
 
 class BinOp(Node):
 
-    def Evaluate(self):
+    def Evaluate(self, st):
         if self.value == '+':
-            return self.children[0].Evaluate() + self.children[1].Evaluate()
+            return self.children[0].Evaluate(st) + self.children[1].Evaluate(st)
         elif self.value == '-':
-            return self.children[0].Evaluate() - self.children[1].Evaluate()
+            return self.children[0].Evaluate(st) - self.children[1].Evaluate(st)
         elif self.value == '*':
-            return self.children[0].Evaluate() * self.children[1].Evaluate()
+            return self.children[0].Evaluate(st) * self.children[1].Evaluate(st)
         elif self.value == '/':
-            return self.children[0].Evaluate() // self.children[1].Evaluate()
+            return self.children[0].Evaluate(st) // self.children[1].Evaluate(st)
 class UnOp(Node):
 
-    def Evaluate(self):
+    def Evaluate(self, st):
         if self.value == '-':
-            return -self.children[0].Evaluate()
-        return self.children[0].Evaluate()
+            return -self.children[0].Evaluate(st)
+        return self.children[0].Evaluate(st)
+
+class Block(Node):
+
+    def Evaluate(self, st):
+        for child in self.children:
+            child.Evaluate(st)
+
+class Assignment(Node):
+
+    def Evaluate(self, st):
+        key = self.children[0].value
+        st.setter(key, self.children[1].Evaluate(st))
+
+class Identifier(Node):
+
+    def Evaluate(self, st):
+        return st.getter(self.value)
+
+class Print(Node):
+
+    def Evaluate(self, st):
+        print(self.children[0].Evaluate(st))
+
 
 class IntVal(Node):
 
-    def Evaluate(self):
+    def Evaluate(self, st):
         return self.value
     
 class NoOp(Node):
 
-    def Evaluate(self):
-        pass
+    def Evaluate(self, st):
+        return
 
 class PrePro:
 
@@ -54,7 +89,10 @@ class Tokenizer:
         self.source = source
         self.position = 0
         self.next = None
-        self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        self.num = list(string.digits)
+        self.letters = list(string.ascii_uppercase + string.ascii_lowercase)
+        self.alphanum = self.num + self.letters
+        self.reserverd_variables = ['print']
         self.selectNext()
 
     def selectNext(self):
@@ -97,6 +135,35 @@ class Tokenizer:
             elif self.source[self.position] == ')':
                 self.next = Token('CLOSE', ')')
                 self.position += 1
+
+            elif self.source[self.position] == '=':
+                self.next = Token('assignment', '=')
+                self.position += 1
+
+            elif self.source[self.position] == ';':
+                self.next = Token('semi_colon', ';')
+                self.position += 1
+
+            elif self.source[self.position] in self.letters:
+                val = ''
+                val += self.source[self.position]
+                self.position += 1
+                while self.source[self.position] in self.alphanum or self.source[self.position] == '_':
+                    val  += self.source[self.position]
+                    self.position += 1
+                if val in self.reserverd_variables:
+                    self.next = Token('print', 'print')
+                else:
+                    self.next = Token('identifier', val)
+
+            elif self.source[self.position] == '{':
+                self.next = Token('open_curly_brace', '{')
+                self.position += 1 
+
+            elif self.source[self.position] == '}':
+                self.next = Token('close_curly_brace', '}')
+                self.position += 1
+
             else:
                 raise Exception("Unrecognised letter")
         
@@ -128,6 +195,12 @@ class Parser:
             int_val = IntVal(value,[])
             Parser.tokenizer.selectNext()
             return int_val
+        
+        elif Parser.tokenizer.next.tipoToken == 'identifier':
+            value = Parser.tokenizer.next.valorToken
+            identifier = Identifier(value, [])
+            Parser.tokenizer.selectNext()
+            return identifier
 
         elif Parser.tokenizer.next.tipoToken == 'PLUS':
             Parser.tokenizer.selectNext()
@@ -152,6 +225,58 @@ class Parser:
         else:
             raise Exception ("symbol not recognized")
 
+    def parseBlock():
+
+        if Parser.tokenizer.next.tipoToken == 'open_curly_brace':
+            Parser.tokenizer.selectNext()
+            block = Block('Block', [])
+            while Parser.tokenizer.next.tipoToken != 'close_curly_brace':
+                child = Parser.parseStatement()
+                block.children.append(child)
+
+            Parser.tokenizer.selectNext()
+            if len(block.children) == 0:
+                return NoOp('NoOp', [])
+            
+            return block
+        
+        raise Exception('Program must starts with "{"')
+
+    def parseStatement():
+
+        if Parser.tokenizer.next.tipoToken == 'semi_colon':
+            Parser.tokenizer.selectNext()
+            return NoOp('NoOp', [])
+        
+        if Parser.tokenizer.next.tipoToken == 'identifier':
+            identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+            assignment = Assignment('assignment', [])
+            assignment.children.append(identifier)
+            teste = Parser.tokenizer.next.valorToken
+            Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'assignment':
+                Parser.tokenizer.selectNext()
+                ast_node = Parser.parseExpression()
+                if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                    raise Exception('Expected ";"')
+                Parser.tokenizer.selectNext()
+                assignment.children.append(ast_node)
+                return assignment
+            else:
+                raise Exception('Variables must be followed by "="')
+        
+        if Parser.tokenizer.next.tipoToken == 'print':
+            Parser.tokenizer.selectNext()
+            ast_node = Parser.parseExpression()
+            if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                raise Exception('Expected ";"')
+            Parser.tokenizer.selectNext()
+            pnt = Print('print', [])
+            pnt.children.append(ast_node)
+            return pnt
+
+        return NoOp('NoOp', [])
+
     def parseExpression():
         ast_node = Parser.parseTerm()
         while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
@@ -168,15 +293,15 @@ class Parser:
                 bin_op.children.append(Parser.parseTerm())
                 ast_node = bin_op
         return ast_node
-    
 
     def run(source):
         source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
-        ast_node = Parser.parseExpression()
+        st = SymbolTable({})
+        ast_node = Parser.parseBlock()
         if Parser.tokenizer.next.tipoToken != 'EOF':
             raise Exception ("Unconsumed tokens")
-        return ast_node.Evaluate()
+        return ast_node.Evaluate(st)
 
 if __name__ == "__main__":
 
@@ -187,4 +312,4 @@ if __name__ == "__main__":
     except FileNotFoundError:
         pass
     
-    print(Parser.run(string))
+    Parser.run(source)
