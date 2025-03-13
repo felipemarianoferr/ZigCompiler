@@ -304,6 +304,11 @@ class Parser:
 if __name__ == "__main__":
 
     source = sys.argv[1]
+
+    with open("webhook_input.log", "w", encoding="utf-8") as f:
+        f.write("Entrada recebida pelo Webhook:\n")
+        f.write(repr(source) + "\n")
+
     try:
         with open(source, "r") as arquivo:
             string = arquivo.read()
