@@ -89,7 +89,7 @@ class Tokenizer:
         self.source = source
         self.position = 0
         self.next = None
-        self.num = list(string.digits)
+        self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         self.letters = list(string.ascii_uppercase + string.ascii_lowercase)
         self.alphanum = self.num + self.letters
         self.reserverd_variables = ['print']
@@ -311,5 +311,17 @@ if __name__ == "__main__":
             string = arquivo.read()
     except FileNotFoundError:
         pass
+
+    # codigo_fonte = """{
+    #     print(1);
+    #     x = 3+6/3 * 2 -+- + 2*4/2 + 0/1 -((6+ ((4)))/(2)); // Teste // Teste 2
+    #     y_1 = 3;
+    #     y_1 = y_1 + 2;
+    #     z__ = x + y_1;
+    #     ;
+    #     // Saida final
+    #     print(x);
+    #     print(z__+1);
+    #     }"""
     
     Parser.run(source)
