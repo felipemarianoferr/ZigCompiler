@@ -124,6 +124,9 @@ class Tokenizer:
                 while self.position < len(self.source) and self.source[self.position] in self.num:
                     val += self.source[self.position]
                     self.position += 1
+                #gambiarra resolver com professor:
+                if self.position < len(self.source) and self.source[self.position].isalpha():
+                    raise Exception("Syntax error")
                 self.next = Token('INT', int(val))
 
             elif self.source[self.position] == '(':
@@ -229,6 +232,7 @@ class Parser:
             Parser.tokenizer.selectNext()
             block = Block('Block', [])
             while Parser.tokenizer.next.tipoToken != 'close_curly_brace':
+                #gambiarra resolver com professor:
                 if Parser.tokenizer.next.tipoToken == 'EOF':
                     raise Exception('Expected "}"')
                 child = Parser.parseStatement()
@@ -247,6 +251,10 @@ class Parser:
         if Parser.tokenizer.next.tipoToken == 'semi_colon':
             Parser.tokenizer.selectNext()
             return NoOp('NoOp', [])
+        
+        #gambiarra resolver com professor:
+        if Parser.tokenizer.next.tipoToken == 'INT':
+            raise Exception('Variables cannot start with numbers')
         
         if Parser.tokenizer.next.tipoToken == 'identifier':
             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
