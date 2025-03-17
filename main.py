@@ -124,6 +124,8 @@ class Tokenizer:
                 while self.position < len(self.source) and self.source[self.position] in self.num:
                     val += self.source[self.position]
                     self.position += 1
+                if self.position < len(self.source) and self.source[self.position].isalpha() or self.source[self.position] == '_':
+                    raise Exception("Invalid variable")
                 self.next = Token('INT', int(val))
 
             elif self.source[self.position] == '(':
@@ -252,7 +254,6 @@ class Parser:
             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
             assignment = Assignment('assignment', [])
             assignment.children.append(identifier)
-            teste = Parser.tokenizer.next.valorToken
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'assignment':
                 Parser.tokenizer.selectNext()
@@ -313,9 +314,11 @@ if __name__ == "__main__":
     except FileNotFoundError:
         code = source
    
-    # codigo_fonte = """
+    # codigo_fonte = """ 
     # {
-    # x1 = 1;
-    # """	
+    # 1x = 1;
+    # print(x);
+    # }
+    # """
     
     Parser.run(code)
