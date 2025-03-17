@@ -303,14 +303,16 @@ class Parser:
 
 if __name__ == "__main__":
 
+    # dosent work with the input below which is the "same" as the one in the comment below but comes from the webhook:
     source = sys.argv[1]
 
     try:
         with open(source, "r") as arquivo:
-            string = arquivo.read()
+            code = arquivo.read()
     except FileNotFoundError:
-        pass
+        code = source
 
+    # works testing with the input below:
     # codigo_fonte = """{
     #     print(1);
     #     x = 3+6/3 * 2 -+- + 2*4/2 + 0/1 -((6+ ((4)))/(2)); // Teste // Teste 2
@@ -323,4 +325,4 @@ if __name__ == "__main__":
     #     print(z__+1);
     #     }"""
     
-    Parser.run(source)
+    Parser.run(code)
