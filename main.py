@@ -124,8 +124,6 @@ class Tokenizer:
                 while self.position < len(self.source) and self.source[self.position] in self.num:
                     val += self.source[self.position]
                     self.position += 1
-                if self.position < len(self.source) and self.source[self.position].isalpha() or self.source[self.position] in ["_", "="]:
-                    raise Exception("Invalid variable")
                 self.next = Token('INT', int(val))
 
             elif self.source[self.position] == '(':
