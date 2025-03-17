@@ -229,6 +229,8 @@ class Parser:
             Parser.tokenizer.selectNext()
             block = Block('Block', [])
             while Parser.tokenizer.next.tipoToken != 'close_curly_brace':
+                if Parser.tokenizer.next.tipoToken == 'EOF':
+                    raise Exception('Expected "}"')
                 child = Parser.parseStatement()
                 block.children.append(child)
 
@@ -303,7 +305,6 @@ class Parser:
 
 if __name__ == "__main__":
 
-    # dosent work with the input below which is the "same" as the one in the comment below but comes from the webhook:
     source = sys.argv[1]
 
     try:
@@ -311,18 +312,10 @@ if __name__ == "__main__":
             code = arquivo.read()
     except FileNotFoundError:
         code = source
-
-    # works testing with the input below:
-    # codigo_fonte = """{
-    #     print(1);
-    #     x = 3+6/3 * 2 -+- + 2*4/2 + 0/1 -((6+ ((4)))/(2)); // Teste // Teste 2
-    #     y_1 = 3;
-    #     y_1 = y_1 + 2;
-    #     z__ = x + y_1;
-    #     ;
-    #     // Saida final
-    #     print(x);
-    #     print(z__+1);
-    #     }"""
+   
+    # codigo_fonte = """
+    # {
+    # x1 = 1;
+    # """	
     
     Parser.run(code)
