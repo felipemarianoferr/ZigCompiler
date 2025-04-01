@@ -14,7 +14,7 @@ class Tokenizer:
 
     def selectNext(self):
 
-        while self.position < len(self.source) and self.source[self.position] in (' ', '\n', '\r', '\ufeff'):
+        while self.position < len(self.source) and self.source[self.position] in (' ', '\n', '\r', '\ufeff', '\t'):
             self.position += 1
         if self.position >= len(self.source):
             self.next = Token('EOF','')
