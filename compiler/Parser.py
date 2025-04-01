@@ -174,17 +174,33 @@ class Parser:
         
         elif Parser.tokenizer.next.tipoToken == 'print':
             Parser.tokenizer.selectNext()
-            ast_node = Parser.parseBoolExpression()
-            if Parser.tokenizer.next.tipoToken != 'semi_colon':
-                raise Exception('Expected ";"')
-            Parser.tokenizer.selectNext()
-            pnt = Print('print', [])
-            pnt.children.append(ast_node)
+            if Parser.tokenizer.next.tipoToken == 'OPEN':
+                Parser.tokenizer.selectNext()
+                ast_node = Parser.parseBoolExpression()
+                if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                    Parser.tokenizer.selectNext()
+                else:
+                    raise Exception('Expected ")"')
+                if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                    raise Exception('Expected ";"')
+                Parser.tokenizer.selectNext()
+                pnt = Print('print', [])
+                pnt.children.append(ast_node)
+            else:
+                raise Exception('Expected "("')
             return pnt
         
         elif Parser.tokenizer.next.tipoToken == 'while':
             Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'OPEN':
+                Parser.tokenizer.selectNext()
+            else:
+                raise Exception('Expected "("')
             ast_node = Parser.parseBoolExpression()
+            if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                Parser.tokenizer.selectNext()
+            else:
+                raise Exception('Expected ")"')
             # Parser.tokenizer.selectNext()
             wle = While('while', [])
             wle.children.append(ast_node)
@@ -193,7 +209,15 @@ class Parser:
         
         elif Parser.tokenizer.next.tipoToken == 'if':
             Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'OPEN':
+                Parser.tokenizer.selectNext()
+            else:
+                raise Exception('Expected "("')
             ast_node = Parser.parseBoolExpression()
+            if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                Parser.tokenizer.selectNext()
+            else:
+                raise Exception('Expected ")"')
             # Parser.tokenizer.selectNext()
             if_node = If('if', [])
             if_node.children.append(ast_node)
