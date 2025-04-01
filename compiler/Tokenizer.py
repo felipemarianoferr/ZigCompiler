@@ -9,7 +9,7 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.reserverd_variables = ['print', 'if', 'else', 'while', 'read']
+        self.reserverd_variables = ['print', 'if', 'else', 'while', 'reader']
         self.selectNext()
 
     def selectNext(self):
@@ -84,8 +84,8 @@ class Tokenizer:
                         self.next = Token('while', 'while')
                     elif val == 'print':
                         self.next = Token('print', 'print')
-                    elif val == 'read':
-                        self.next = Token('read', 'read')
+                    elif val == 'reader':
+                        self.next = Token('read', 'reader')
                 else:
                     self.next = Token('identifier', val)
 

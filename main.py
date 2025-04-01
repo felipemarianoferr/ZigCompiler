@@ -10,5 +10,5 @@ if __name__ == "__main__":
             code = arquivo.read()
     except FileNotFoundError:
         code = source
-        
+
     Parser.run(code)
