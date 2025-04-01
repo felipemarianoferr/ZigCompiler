@@ -226,6 +226,9 @@ class Parser:
                 Parser.tokenizer.selectNext()
                 if_node.children.append(Parser.parseBlock())
             return if_node
+        
+        else:
+            raise Exception('Expected statement')
 
         return NoOp('NoOp', [])
 
