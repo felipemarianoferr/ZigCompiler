@@ -23,6 +23,51 @@ class Parser:
                 bin_op.children.append(Parser.parseFactor())
                 ast_node = bin_op
         return ast_node
+    
+    def parseBoolTerm():
+        ast_node = Parser.parseRedExpression()
+        while Parser.tokenizer.next.tipoToken in ['and']:
+            if Parser.tokenizer.next.tipoToken == 'and':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('&&', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseExpression())
+                ast_node = bin_op
+        return ast_node
+
+    def parseBoolExpression():
+        ast_node = Parser.parseBoolTerm()
+        while Parser.tokenizer.next.tipoToken in ['or']:
+            if Parser.tokenizer.next.tipoToken == 'or':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('||', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseBoolTerm())
+                ast_node = bin_op
+        return ast_node
+    
+    def parseRedExpression():
+        ast_note = Parser.parseExpression()
+        while Parser.tokenizer.next.tipoToken in ['equal', 'less', 'greater']:
+            if Parser.tokenizer.next.tipoToken == 'equal':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('==', [])
+                bin_op.children.append(ast_note)
+                bin_op.children.append(Parser.parseExpression())
+                ast_note = bin_op
+            elif Parser.tokenizer.next.tipoToken == 'less':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('<', [])
+                bin_op.children.append(ast_note)
+                bin_op.children.append(Parser.parseExpression())
+                ast_note = bin_op
+            elif Parser.tokenizer.next.tipoToken == 'greater':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('>', [])
+                bin_op.children.append(ast_note)
+                bin_op.children.append(Parser.parseExpression())
+                ast_note = bin_op
+        return ast_note
 
     def parseFactor():
 
@@ -50,14 +95,34 @@ class Parser:
             un_op.children.append(Parser.parseFactor())
             return un_op
 
+        elif Parser.tokenizer.next.tipoToken == 'not':
+            Parser.tokenizer.selectNext()
+            un_op  = UnOp('!', [])
+            un_op.children.append(Parser.parseFactor())
+            return un_op
+
         elif Parser.tokenizer.next.tipoToken == 'OPEN':
             Parser.tokenizer.selectNext()
-            result = Parser.parseExpression()
+            result = Parser.parseBoolExpression()
             if Parser.tokenizer.next.tipoToken == 'CLOSE':
                 Parser.tokenizer.selectNext()
                 return result
             else:
                 raise Exception ("Parenthesis not detected")
+            
+        elif Parser.tokenizer.next.tipoToken == 'read':
+            Parser.tokenizer.selectNext()
+            read = Read('read', [])
+            if Parser.tokenizer.next.tipoToken == 'OPEN':
+                Parser.tokenizer.selectNext()
+                if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                    Parser.tokenizer.selectNext()
+                    return read
+                else:
+                    raise Exception ("Parenthesis not detected")
+            else:
+                raise Exception ("Expected '('")
+            
         else:
             raise Exception ("symbol not recognized")
 
@@ -98,7 +163,7 @@ class Parser:
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'assignment':
                 Parser.tokenizer.selectNext()
-                ast_node = Parser.parseExpression()
+                ast_node = Parser.parseBoolExpression()
                 if Parser.tokenizer.next.tipoToken != 'semi_colon':
                     raise Exception('Expected ";"')
                 Parser.tokenizer.selectNext()
@@ -107,15 +172,36 @@ class Parser:
             else:
                 raise Exception('Variables must be followed by "="')
         
-        if Parser.tokenizer.next.tipoToken == 'print':
+        elif Parser.tokenizer.next.tipoToken == 'print':
             Parser.tokenizer.selectNext()
-            ast_node = Parser.parseExpression()
+            ast_node = Parser.parseBoolExpression()
             if Parser.tokenizer.next.tipoToken != 'semi_colon':
                 raise Exception('Expected ";"')
             Parser.tokenizer.selectNext()
             pnt = Print('print', [])
             pnt.children.append(ast_node)
             return pnt
+        
+        elif Parser.tokenizer.next.tipoToken == 'while':
+            Parser.tokenizer.selectNext()
+            ast_node = Parser.parseBoolExpression()
+            # Parser.tokenizer.selectNext()
+            wle = While('while', [])
+            wle.children.append(ast_node)
+            wle.children.append(Parser.parseBlock())
+            return wle
+        
+        elif Parser.tokenizer.next.tipoToken == 'if':
+            Parser.tokenizer.selectNext()
+            ast_node = Parser.parseBoolExpression()
+            # Parser.tokenizer.selectNext()
+            if_node = If('if', [])
+            if_node.children.append(ast_node)
+            if_node.children.append(Parser.parseBlock())
+            if Parser.tokenizer.next.tipoToken == 'else':
+                Parser.tokenizer.selectNext()
+                if_node.children.append(Parser.parseBlock())
+            return if_node
 
         return NoOp('NoOp', [])
 

@@ -9,7 +9,7 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.reserverd_variables = ['print']
+        self.reserverd_variables = ['print', 'if', 'else', 'while', 'read']
         self.selectNext()
 
     def selectNext(self):
@@ -57,8 +57,12 @@ class Tokenizer:
                 self.position += 1
 
             elif self.source[self.position] == '=':
-                self.next = Token('assignment', '=')
-                self.position += 1
+                if self.position + 1 < len(self.source) and self.source[self.position + 1] == '=':
+                    self.next = Token('equal', '==')
+                    self.position += 2
+                else:
+                    self.next = Token('assignment', '=')
+                    self.position += 1
 
             elif self.source[self.position] == ';':
                 self.next = Token('semi_colon', ';')
@@ -72,7 +76,16 @@ class Tokenizer:
                     val  += self.source[self.position]
                     self.position += 1
                 if val in self.reserverd_variables:
-                    self.next = Token('print', 'print')
+                    if val == 'if':
+                        self.next = Token('if', 'if')
+                    elif val == 'else':
+                        self.next = Token('else', 'else')
+                    elif val == 'while':
+                        self.next = Token('while', 'while')
+                    elif val == 'print':
+                        self.next = Token('print', 'print')
+                    elif val == 'read':
+                        self.next = Token('read', 'read')
                 else:
                     self.next = Token('identifier', val)
 
@@ -83,6 +96,28 @@ class Tokenizer:
             elif self.source[self.position] == '}':
                 self.next = Token('close_curly_brace', '}')
                 self.position += 1
-
+            
+            elif self.source[self.position] == '|':
+                if self.position + 1 < len(self.source) and self.source[self.position + 1] == '|':
+                    self.next = Token('or', '||')
+                    self.position += 2
+            
+            elif self.source[self.position] == '&':
+                if self.position + 1 < len(self.source) and self.source[self.position + 1] == '&':
+                    self.next = Token('and', '&&')
+                    self.position += 2
+            
+            elif self.source[self.position] == '<':
+                self.next = Token('less', '<')
+                self.position += 1
+            
+            elif self.source[self.position] == '>':
+                self.next = Token('greater', '>')
+                self.position += 1
+            
+            elif self.source[self.position] == '!':
+                self.next = Token('not', '!')
+                self.position += 1
+            
             else:
                 raise Exception("Unrecognised letter")
