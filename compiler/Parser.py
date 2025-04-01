@@ -230,8 +230,6 @@ class Parser:
         else:
             raise Exception('Expected statement')
 
-        return NoOp('NoOp', [])
-
     def parseExpression():
         ast_node = Parser.parseTerm()
         while Parser.tokenizer.next.tipoToken in ['PLUS', 'MINUS']:
