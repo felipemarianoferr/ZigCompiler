@@ -9,7 +9,7 @@ class Parser:
 
     def parseTerm():
         ast_node = Parser.parseFactor()
-        while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV']:
+        while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV', 'concat']:
             if Parser.tokenizer.next.tipoToken == 'MULT':
                 Parser.tokenizer.selectNext()
                 bin_op = BinOp('*', [])
@@ -22,6 +22,13 @@ class Parser:
                 bin_op.children.append(ast_node)
                 bin_op.children.append(Parser.parseFactor())
                 ast_node = bin_op
+            elif Parser.tokenizer.next.tipoToken == 'concat':
+                Parser.tokenizer.selectNext()
+                bin_op = BinOp('++', [])
+                bin_op.children.append(ast_node)
+                bin_op.children.append(Parser.parseFactor())
+                ast_node = bin_op
+
         return ast_node
     
     def parseBoolTerm():
@@ -77,6 +84,18 @@ class Parser:
             Parser.tokenizer.selectNext()
             return int_val
         
+        elif Parser.tokenizer.next.tipoToken == 'bool':
+            value = Parser.tokenizer.next.valorToken
+            bool_val = BoolVal(value, [])
+            Parser.tokenizer.selectNext()
+            return bool_val
+        
+        elif Parser.tokenizer.next.tipoToken == 'str':
+            value = Parser.tokenizer.next.valorToken
+            str_val = StrVal(value, [])
+            Parser.tokenizer.selectNext()
+            return str_val
+        
         elif Parser.tokenizer.next.tipoToken == 'identifier':
             value = Parser.tokenizer.next.valorToken
             identifier = Identifier(value, [])
@@ -124,7 +143,7 @@ class Parser:
                 raise Exception ("Expected '('")
             
         else:
-            raise Exception ("symbol not recognized")
+            raise Exception (f"symbol {Parser.tokenizer.next.tipoToken} not recognized")
 
     def parseBlock():
 
@@ -156,6 +175,42 @@ class Parser:
         if Parser.tokenizer.next.tipoToken == 'INT':
             raise Exception('Variables cannot start with numbers')
         
+        if Parser.tokenizer.next.tipoToken == 'var':
+            Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'identifier':
+                identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+                Parser.tokenizer.selectNext()
+                if Parser.tokenizer.next.tipoToken != 'colon':
+                    raise Exception('Expected ":"')
+                Parser.tokenizer.selectNext()
+
+                if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str']:
+                    raise Exception('Expected type after ":"')
+                
+                var_type = Parser.tokenizer.next.valorToken
+                Parser.tokenizer.selectNext()
+
+                if Parser.tokenizer.next.tipoToken == 'assignment':
+                    Parser.tokenizer.selectNext()
+                    ast_node = Parser.parseBoolExpression()
+                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                        raise Exception('Expected ";"')
+                    Parser.tokenizer.selectNext()
+                    var_decl = VarDec(var_type, [])
+                    var_decl.children.append(identifier)
+                    var_decl.children.append(ast_node)
+                    return var_decl
+                else:
+                    var_decl = VarDec(var_type, [])
+                    var_decl.children.append(identifier)
+                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                        raise Exception('Expected ";"')
+                    Parser.tokenizer.selectNext()
+                    return var_decl
+            else:
+                raise Exception('Expected identifier after "var"')
+
+
         if Parser.tokenizer.next.tipoToken == 'identifier':
             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
             assignment = Assignment('assignment', [])

@@ -10,24 +10,69 @@ class Node():
 class BinOp(Node):
 
     def Evaluate(self, st):
+
+        tuple1 = self.children[0].Evaluate(st)
+        tuple2 = self.children[1].Evaluate(st)
+
         if self.value == '+':
-            return self.children[0].Evaluate(st) + self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] + tuple2[0], 'i32')
+            else:
+                raise Exception("TypeError: operator '+' only supports i32")
+            
         elif self.value == '-':
-            return self.children[0].Evaluate(st) - self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] - tuple2[0], 'i32')
+            else:
+                raise Exception("TypeError: operator '-' only supports i32")
+            
         elif self.value == '*':
-            return self.children[0].Evaluate(st) * self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] * tuple2[0], 'i32')
+            else:
+                raise Exception("TypeError: operator '*' only supports i32")
+
         elif self.value == '/':
-            return self.children[0].Evaluate(st) // self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] // tuple2[0], 'i32')
+            else:
+                raise Exception("TypeError: operator '/' only supports i32")
+            
         elif self.value == '||':
-            return self.children[0].Evaluate(st) or self.children[1].Evaluate(st)
+            if tuple1[1] == 'bool' and tuple2[1] == 'bool':
+                return (tuple1[0] or tuple2[0], 'bool')
+            else:
+                raise Exception("TypeError: operator '||' only supports bool, pehaps an type error has occurred during the process")
+            
         elif self.value == '&&':
-            return self.children[0].Evaluate(st) and self.children[1].Evaluate(st)
+            if tuple1[1] == 'bool' and tuple2[1] == 'bool':
+                return (tuple1[0] and tuple2[0], 'bool')
+            else:
+                raise Exception("TypeError: operator '&&' only supports bool, pehaps an type error has occurred during the process")
+            
         elif self.value == '==':
-            return self.children[0].Evaluate(st) == self.children[1].Evaluate(st)
+            if tuple1[1] == 'bool' and tuple2[1] == 'bool':
+                return (tuple1[0] == tuple2[0], 'bool')
+            elif tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] == tuple2[0], 'bool')
+            elif tuple1[1] == 'str' and tuple2[1] == 'str':
+                return (tuple1[0] == tuple2[0], 'bool')
+            else:
+                raise Exception("TypeError: operator '==' only compares bool, i32 and str, pehaps an type error has occurred during the process")
+
         elif self.value == '<':
-            return self.children[0].Evaluate(st) < self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] < tuple2[0], 'bool')
+            else:
+                raise Exception("TypeError: operator '<' only supports i32, pehaps an type error has occurred during the process")
+            
         elif self.value == '>':
-            return self.children[0].Evaluate(st) > self.children[1].Evaluate(st)
+            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] > tuple2[0], 'bool')
+            else:
+                raise Exception("TypeError: operator '>' only supports i32, pehaps an type error has occurred during the process")
+        elif self.value == '++':
+            return (str(tuple1[0]) + str(tuple2[0]), 'str')
         
 class UnOp(Node):
 
@@ -74,13 +119,32 @@ class Identifier(Node):
 class Print(Node):
 
     def Evaluate(self, st):
-        print(self.children[0].Evaluate(st))
+        print(self.children[0].Evaluate(st)[0])
 
 
 class IntVal(Node):
 
     def Evaluate(self, st):
-        return self.value
+        return (self.value, 'i32')
+
+class BoolVal(Node): 
+         
+    def Evaluate(self, st):
+        return (self.value, 'bool')
+    
+class StrVal(Node):
+
+    def Evaluate(self, st):
+        return (self.value, 'str')
+    
+class VarDec(Node):
+
+    def Evaluate(self, st):
+        if (len(self.children) == 1):
+            st.create_variable(self.children[0].value, None, self.value)
+        else:
+            st.create_variable(self.children[0].value, self.children[1].Evaluate(st), self.value)
+            # if type does not match, raise exception on the create_variable function
     
 class NoOp(Node):
 
