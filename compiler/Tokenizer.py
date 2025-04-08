@@ -9,7 +9,7 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.reserverd_variables = ['print', 'if', 'else', 'while', 'reader', 'var']
+        self.reserverd_variables = ['printf', 'if', 'else', 'while', 'reader', 'var', 'print', 'scanf']
         self.reserverd_types = ['i32', 'bool', 'str']
         self.selectNext()
 
@@ -98,9 +98,9 @@ class Tokenizer:
                         self.next = Token('else', 'else')
                     elif val == 'while':
                         self.next = Token('while', 'while')
-                    elif val == 'print':
+                    elif val in ['printf', 'print']:
                         self.next = Token('print', 'print')
-                    elif val == 'reader':
+                    elif val in ['scanf', 'reader']:
                         self.next = Token('read', 'reader')
                     elif val == 'var':
                         self.next = Token('var', 'var')

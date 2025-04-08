@@ -61,7 +61,9 @@ class BinOp(Node):
                 raise Exception("TypeError: operator '==' only compares bool, i32 and str, pehaps an type error has occurred during the process")
 
         elif self.value == '<':
-            if tuple1[1] == 'i32' and tuple2[1] == 'i32':
+            if tuple1[1] in  'i32' and tuple2[1] == 'i32':
+                return (tuple1[0] < tuple2[0], 'bool')
+            elif tuple1[1] == 'str' and tuple2[1] == 'str':
                 return (tuple1[0] < tuple2[0], 'bool')
             else:
                 raise Exception("TypeError: operator '<' only supports i32, pehaps an type error has occurred during the process")
@@ -69,35 +71,57 @@ class BinOp(Node):
         elif self.value == '>':
             if tuple1[1] == 'i32' and tuple2[1] == 'i32':
                 return (tuple1[0] > tuple2[0], 'bool')
+            elif tuple1[1] == 'str' and tuple2[1] == 'str':
+                return (tuple1[0] > tuple2[0], 'bool')
             else:
                 raise Exception("TypeError: operator '>' only supports i32, pehaps an type error has occurred during the process")
         elif self.value == '++':
+            if (tuple1[1] == 'bool'):
+                return (str(tuple1[0]).lower() + str(tuple2[0]), 'str')
+            elif(tuple2[1] == 'bool'):
+                return (str(tuple1[0]) + str(tuple2[0]).lower(), 'str')
             return (str(tuple1[0]) + str(tuple2[0]), 'str')
         
 class UnOp(Node):
 
     def Evaluate(self, st):
+        val, tipo = self.children[0].Evaluate(st)
         if self.value == '!':
-            return not self.children[0].Evaluate(st)
-        if self.value == '-':
-            return -self.children[0].Evaluate(st)
-        return self.children[0].Evaluate(st)
+            if tipo != 'bool':
+                raise Exception("TypeError: '!' only supports bool")
+            return (not val, 'bool')
+        elif self.value == '-':
+            if tipo != 'i32':
+                raise Exception("TypeError: unary '-' only supports i32")
+            return (-val, 'i32')
+        elif self.value == '+':
+            if tipo != 'i32':
+                raise Exception("TypeError: unary '+' only supports i32")
+            return (val, 'i32')
+
 
 class While(Node):
     def Evaluate(self, st):
-        while self.children[0].Evaluate(st):
+        cond = self.children[0].Evaluate(st)
+        if cond[1] != 'bool':
+            raise Exception("TypeError: condition must be bool")
+        while cond[0]:
             self.children[1].Evaluate(st)
+            cond = self.children[0].Evaluate(st)
 
 class If(Node):
     def Evaluate(self, st):
-        if self.children[0].Evaluate(st):
-            self.children[1].Evaluate(st)
-        elif len(self.children) > 2:
-            self.children[2].Evaluate(st)
+            cond = self.children[0].Evaluate(st)
+            if cond[1] != 'bool':
+                raise Exception("TypeError: condition must be bool")
+            if cond[0]:
+                self.children[1].Evaluate(st)
+            elif len(self.children) > 2:
+                self.children[2].Evaluate(st)
 
 class Read(Node):
     def Evaluate(self, st):
-        return int(input())
+        return (int(input()), 'i32')
 
 class Block(Node):
 
@@ -119,7 +143,10 @@ class Identifier(Node):
 class Print(Node):
 
     def Evaluate(self, st):
-        print(self.children[0].Evaluate(st)[0])
+        value, type = self.children[0].Evaluate(st)
+        if type == 'bool':
+            value = str(value).lower()
+        print(value)
 
 
 class IntVal(Node):
@@ -149,4 +176,4 @@ class VarDec(Node):
 class NoOp(Node):
 
     def Evaluate(self, st):
-        return
+        return (None, None)

@@ -85,7 +85,10 @@ class Parser:
             return int_val
         
         elif Parser.tokenizer.next.tipoToken == 'bool':
-            value = Parser.tokenizer.next.valorToken
+            if Parser.tokenizer.next.valorToken == 'true':
+                value = True
+            else:
+                value = False
             bool_val = BoolVal(value, [])
             Parser.tokenizer.selectNext()
             return bool_val
@@ -215,6 +218,7 @@ class Parser:
             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
             assignment = Assignment('assignment', [])
             assignment.children.append(identifier)
+            
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'assignment':
                 Parser.tokenizer.selectNext()
@@ -225,7 +229,7 @@ class Parser:
                 assignment.children.append(ast_node)
                 return assignment
             else:
-                raise Exception('Variables must be followed by "="')
+                raise Exception(f'Variables must be followed by "="')
         
         elif Parser.tokenizer.next.tipoToken == 'print':
             Parser.tokenizer.selectNext()
