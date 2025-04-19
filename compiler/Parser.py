@@ -38,7 +38,7 @@ class Parser:
                 Parser.tokenizer.selectNext()
                 bin_op = BinOp('&&', [])
                 bin_op.children.append(ast_node)
-                bin_op.children.append(Parser.parseExpression())
+                bin_op.children.append(Parser.parseRedExpression())
                 ast_node = bin_op
         return ast_node
 
