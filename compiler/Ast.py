@@ -110,17 +110,17 @@ class BinOp(Node):
         elif self.value == '==':
             Code.append("cmp eax, ecx")
             Code.append("mov eax, 0")
-            Code.append("mov ebx, 1")
+            Code.append("mov ecx, 1")
             Code.append("cmove eax, ecx")
         elif self.value == '>':
-            Code.append("cmp ecx, eax")
+            Code.append("cmp eax, ecx")
             Code.append("mov eax, 0")
-            Code.append("mov ebx, 1")
+            Code.append("mov ecx, 1")
             Code.append("cmovg eax, ecx")
         elif self.value == '<':
-            Code.append("cmp ecx, eax")
+            Code.append("cmp eax, ecx")
             Code.append("mov eax, 0")
-            Code.append("mov ebx, 1")
+            Code.append("mov ecx, 1")
             Code.append("cmovl eax, ecx")
         elif self.value == '&&':
             Code.append("test eax, eax")
