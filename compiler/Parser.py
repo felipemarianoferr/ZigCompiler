@@ -306,11 +306,13 @@ class Parser:
                 ast_node = bin_op
         return ast_node
 
-    def run(source):
+    def run(source, filename):
         source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
         st = SymbolTable({})
+        code = Code()
         ast_node = Parser.parseBlock()
         if Parser.tokenizer.next.tipoToken != 'EOF':
             raise Exception ("Unconsumed tokens")
-        return ast_node.Evaluate(st)
+        ast_node.generate(st)
+        code.dump(filename)

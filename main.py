@@ -11,4 +11,4 @@ if __name__ == "__main__":
     except FileNotFoundError:
         code = source
 
-    Parser.run(code)
+    Parser.run(code, source)
