@@ -310,9 +310,8 @@ class Parser:
         source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
         st = SymbolTable({})
-        code = Code()
         ast_node = Parser.parseBlock()
         if Parser.tokenizer.next.tipoToken != 'EOF':
             raise Exception ("Unconsumed tokens")
         ast_node.generate(st)
-        code.dump(filename)
+        Code.dump(filename)
