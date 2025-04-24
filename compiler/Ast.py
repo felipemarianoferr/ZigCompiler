@@ -158,7 +158,8 @@ class Assignment(Node):
 class Identifier(Node):
 
     def Evaluate(self, st):
-        return st.getter(self.value)
+        val, tipo, _ = st.getter(self.value)
+        return (val, tipo)
 
 class Print(Node):
 
@@ -210,22 +211,20 @@ class FuncDec(Node):
 class FuncCall(Node):
 
     def Evaluate(self, st):
-        func_info = st.getter(self.value)  # busca a função no escopo atual
+        val, tipo, isFunc = st.getter(self.value)
 
-        # Verifica se é mesmo uma função
-        if func_info[2] != True:
-            raise Exception(f"'{self.name}' is not a function")
+        if not isFunc:
+            raise Exception(f"'{self.value}' is not a function")
 
-        func_dec_node = func_info[1]  # o nó FuncDec armazenado como valor
+        func_dec_node = val  # o nó FuncDec armazenado como valor
 
-        # Verificação do número de argumentos
         if len(self.children) != len(func_dec_node.children) - 2:
             raise Exception("Argument count mismatch")
 
         local_st = SymbolTable({}, st)
 
         for i in range(len(self.children)):
-            param_decl = func_dec_node.children[i + 1]  # pula o nome
+            param_decl = func_dec_node.children[i + 1]
             param_name = param_decl.children[0].value
             param_type = param_decl.value
 
@@ -233,10 +232,8 @@ class FuncCall(Node):
             local_st.create_variable(param_name, None, param_type, False)
             local_st.setter(param_name, arg_val)
 
-        # Executa corpo da função
         result = func_dec_node.block.Evaluate(local_st)
 
-        # Verifica tipo de retorno
         if result is None and func_dec_node.returnType != "void":
             raise Exception("Function must return a value")
         if result is not None and result[1] != func_dec_node.returnType:
