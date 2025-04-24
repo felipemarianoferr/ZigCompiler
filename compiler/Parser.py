@@ -425,7 +425,7 @@ class Parser:
         source = PrePro.filter(source)
         Parser.tokenizer = Tokenizer(source)
         st = SymbolTable({})
-        ast_node = Parser.parseBlock()
+        ast_node = Parser.parseProgram()
         main_call = FuncCall("main", [])
         ast_node.children.append(main_call)
         if Parser.tokenizer.next.tipoToken != 'EOF':
