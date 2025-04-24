@@ -9,8 +9,8 @@ class Tokenizer:
         self.position = 0
         self.next = None
         self.num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-        self.reserverd_variables = ['printf', 'if', 'else', 'while', 'reader', 'var', 'print', 'scanf']
-        self.reserverd_types = ['i32', 'bool', 'str']
+        self.reserverd_variables = ['printf', 'if', 'else', 'while', 'reader', 'var', 'print', 'scanf', 'fn', 'return']
+        self.reserverd_types = ['i32', 'bool', 'str', 'void']
         self.selectNext()
 
     def selectNext(self):
@@ -104,6 +104,12 @@ class Tokenizer:
                         self.next = Token('read', 'reader')
                     elif val == 'var':
                         self.next = Token('var', 'var')
+                    elif val == 'fn':
+                        self.next = Token('FUNC', 'fn')
+                    
+                    elif val == 'return':
+                        self.next = Token('RETURN', 'return')
+
                 elif val in self.reserverd_types:
                     if val == 'bool':
                         self.next = Token('bool', 'bool')
@@ -111,9 +117,12 @@ class Tokenizer:
                         self.next = Token('str', 'str')
                     elif val == 'i32':
                         self.next = Token('i32', 'i32')
+                    elif val == 'void':
+                        self.next = Token('void', 'void')
+
                 elif val in ['true', 'false']:
                     self.next = Token('bool', val)
-
+                
                 else:
                     self.next = Token('identifier', val)
 
@@ -149,6 +158,10 @@ class Tokenizer:
             
             elif self.source[self.position] == ':':
                 self.next = Token('colon', ':')
+                self.position += 1
+            
+            elif self.source[self.position] == ',':
+                self.next = Token('comma', ',')
                 self.position += 1
             
             else:

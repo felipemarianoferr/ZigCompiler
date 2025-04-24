@@ -1,3 +1,4 @@
+from SymbolTable import SymbolTable
 class Node():
 
     def __init__(self, value, children):
@@ -125,9 +126,27 @@ class Read(Node):
 
 class Block(Node):
 
+    """ V2.3
+     
     def Evaluate(self, st):
         for child in self.children:
-            child.Evaluate(st)
+          child.Evaluate(st)
+    """
+
+    def Evaluate(self, st):
+        for child in self.children:
+            if child.value == "return":
+                returnChild =  child.Evaluate(st)
+                if returnChild is not None:
+                    return returnChild
+                return(None, "void")
+            elif child.value == "Block":
+                st_child = SymbolTable({}, st)
+                returnChild = child.Evaluate(st_child)
+                if returnChild is not None:
+                    return returnChild
+            else:
+                child.Evaluate(st)
 
 class Assignment(Node):
 
@@ -168,12 +187,62 @@ class VarDec(Node):
 
     def Evaluate(self, st):
         if (len(self.children) == 1):
-            st.create_variable(self.children[0].value, None, self.value)
+            st.create_variable(self.children[0].value, None, self.value, False)
         else:
-            st.create_variable(self.children[0].value, self.children[1].Evaluate(st), self.value)
+            st.create_variable(self.children[0].value, self.children[1].Evaluate(st), self.value, False)
             # if type does not match, raise exception on the create_variable function
     
 class NoOp(Node):
 
     def Evaluate(self, st):
         return (None, None)
+    
+class FuncDec(Node):
+
+    def __init__(self, value, children, returnType):
+        super().__init__(value, children)
+        self.returnType = returnType
+
+    def Evaluate(self, st):
+        st.create_variable(self.value, self, self.returnType, True)
+
+class FuncCall(Node):
+
+    def Evaluate(self, st):
+        func_info = st.getter(self.value)  # busca a função no escopo atual
+
+        # Verifica se é mesmo uma função
+        if func_info[2] != True:
+            raise Exception(f"'{self.name}' is not a function")
+
+        func_dec_node = func_info[1]  # o nó FuncDec armazenado como valor
+
+        # Verificação do número de argumentos
+        if len(self.children) != len(func_dec_node.children) - 2:
+            raise Exception("Argument count mismatch")
+
+        local_st = SymbolTable({}, st)
+
+        for i in range(len(self.children)):
+            param_decl = func_dec_node.children[i + 1]  # pula o nome
+            param_name = param_decl.children[0].value
+            param_type = param_decl.value
+
+            arg_val = self.children[i].Evaluate(st)
+            local_st.create_variable(param_name, None, param_type, False)
+            local_st.setter(param_name, arg_val)
+
+        # Executa corpo da função
+        result = func_dec_node.block.Evaluate(local_st)
+
+        # Verifica tipo de retorno
+        if result is None and func_dec_node.returnType != "void":
+            raise Exception("Function must return a value")
+        if result is not None and result[1] != func_dec_node.returnType:
+            raise Exception("Function returned wrong type")
+
+        return result
+
+class Return(Node):
+    def Evaluate(self, st):
+        return self.children[0].Evaluate(st)

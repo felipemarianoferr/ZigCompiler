@@ -7,6 +7,108 @@ class Parser:
 
     tokenizer = None
 
+    def parseProgram():
+        block = Block('Block', [])
+        while Parser.tokenizer.next.tipoToken != 'EOF':
+            if Parser.tokenizer.next.tipoToken == 'var':
+                block.children.append(Parser.parseVarDec())
+                Parser.tokenizer.selectNext()
+            elif Parser.tokenizer.next.tipoToken == 'fn':
+                block.children.append(Parser.parseFunction())
+                Parser.tokenizer.selectNext()
+        return block
+            
+    def parseVarDec():
+        if Parser.tokenizer.next.tipoToken == 'var':
+            Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'identifier':
+                identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+                Parser.tokenizer.selectNext()
+                if Parser.tokenizer.next.tipoToken != 'colon':
+                    raise Exception('Expected ":"')
+                Parser.tokenizer.selectNext()
+
+                if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str', 'void']:
+                    raise Exception('Expected type after ":"')
+                
+                var_type = Parser.tokenizer.next.valorToken
+                Parser.tokenizer.selectNext()
+
+                if Parser.tokenizer.next.tipoToken == 'assignment':
+                    Parser.tokenizer.selectNext()
+                    ast_node = Parser.parseBoolExpression()
+                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                        raise Exception('Expected ";"')
+                    Parser.tokenizer.selectNext()
+                    var_decl = VarDec(var_type, [])
+                    var_decl.children.append(identifier)
+                    var_decl.children.append(ast_node)
+                    return var_decl
+                else:
+                    var_decl = VarDec(var_type, [])
+                    var_decl.children.append(identifier)
+                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                        raise Exception('Expected ";"')
+                    Parser.tokenizer.selectNext()
+                    return var_decl
+            else:
+                raise Exception('Expected identifier after "var"')
+
+    def parseFunction():
+        if Parser.tokenizer.next.tipoToken == 'fn':
+            Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'identifier':
+                funcDec = FuncDec(Parser.tokenizer.next.valorToken, [], None)
+                funcDec.children.append(Parser.tokenizer.next.valorToken)
+                Parser.tokenizer.selectNext()
+                if Parser.tokenizer.next.tipoToken == 'OPEN':
+                    Parser.tokenizer.selectNext()
+                    if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                        Parser.tokenizer.selectNext()
+                        if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
+                            funcDec.returnType = Parser.tokenizer.next.valorToken
+                            funcDec.children.append(Parser.parseBlock)
+                            return funcDec
+                    elif Parser.tokenizer.next.tipoToken == 'identifier':
+                        while Parser.tokenizer.next.tipoToken != 'CLOSE':
+                            if Parser.tokenizer.next.tipoToken == 'identifier':
+                                identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+                                Parser.tokenizer.selectNext()
+                                if Parser.tokenizer.next.tipoToken != 'colon':
+                                    raise Exception('Expected ":"')
+                                Parser.tokenizer.selectNext()
+
+                                if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str', 'void']:
+                                    raise Exception('Expected type after ":"')
+                                
+                                var_type = Parser.tokenizer.next.valorToken
+                                Parser.tokenizer.selectNext()
+
+                                if Parser.tokenizer.next.valorToken not in [',', ')']:
+                                    raise Exception('Expected "," or ")"')
+                                
+                                var_decl = VarDec(var_type, [])
+                                var_decl.children.append(identifier)
+                                funcDec.children.append(var_decl)
+
+                                Parser.tokenizer.selectNext()
+                            else:
+                                raise Exception('Expected identifier')
+                        Parser.tokenizer.selectNext()
+                        if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
+                            funcDec.returnType = Parser.tokenizer.next.valorToken
+                            funcDec.children.append(Parser.parseBlock)
+                            return funcDec
+                        else:
+                            raise Exception('Expected type')   
+                    else:
+                        raise Exception('Expected ")" or identifier')
+            else:
+                raise Exception('Expected identifier after "fn"')
+                
+        else:
+            raise Exception('Expected "fn"')
+
     def parseTerm():
         ast_node = Parser.parseFactor()
         while Parser.tokenizer.next.tipoToken in ['MULT', 'DIV', 'concat']:
@@ -145,6 +247,26 @@ class Parser:
             else:
                 raise Exception ("Expected '('")
             
+        elif Parser.tokenizer.next.tipoToken == 'identifier':
+            identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+            Parser.tokenizer.selectNext()
+            if Parser.tokenizer.next.tipoToken == 'OPEN':
+                funcCall = FuncCall(identifier.value, [])
+                Parser.tokenizer.selectNext()
+                while Parser.tokenizer.next.tipoToken != 'CLOSE':
+                    funcCall.children.append(Parser.parseBoolExpression())
+                    if Parser.tokenizer.next.valorToken == ',':
+                        Parser.tokenizer.selectNext()
+                    elif Parser.tokenizer.next.tipoToken == 'CLOSE':
+                        pass
+                    else:
+                        raise Exception('Expected "," or ")"')
+                Parser.tokenizer.selectNext()
+                return funcCall
+            
+            else:
+                raise Exception(f'To call a function, identifier must be followed by "("')
+            
         else:
             raise Exception (f"symbol {Parser.tokenizer.next.tipoToken} not recognized")
 
@@ -178,49 +300,12 @@ class Parser:
         if Parser.tokenizer.next.tipoToken == 'INT':
             raise Exception('Variables cannot start with numbers')
         
-        if Parser.tokenizer.next.tipoToken == 'var':
-            Parser.tokenizer.selectNext()
-            if Parser.tokenizer.next.tipoToken == 'identifier':
-                identifier = Identifier(Parser.tokenizer.next.valorToken, [])
-                Parser.tokenizer.selectNext()
-                if Parser.tokenizer.next.tipoToken != 'colon':
-                    raise Exception('Expected ":"')
-                Parser.tokenizer.selectNext()
-
-                if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str']:
-                    raise Exception('Expected type after ":"')
-                
-                var_type = Parser.tokenizer.next.valorToken
-                Parser.tokenizer.selectNext()
-
-                if Parser.tokenizer.next.tipoToken == 'assignment':
-                    Parser.tokenizer.selectNext()
-                    ast_node = Parser.parseBoolExpression()
-                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
-                        raise Exception('Expected ";"')
-                    Parser.tokenizer.selectNext()
-                    var_decl = VarDec(var_type, [])
-                    var_decl.children.append(identifier)
-                    var_decl.children.append(ast_node)
-                    return var_decl
-                else:
-                    var_decl = VarDec(var_type, [])
-                    var_decl.children.append(identifier)
-                    if Parser.tokenizer.next.tipoToken != 'semi_colon':
-                        raise Exception('Expected ";"')
-                    Parser.tokenizer.selectNext()
-                    return var_decl
-            else:
-                raise Exception('Expected identifier after "var"')
-
-
         if Parser.tokenizer.next.tipoToken == 'identifier':
             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
-            assignment = Assignment('assignment', [])
-            assignment.children.append(identifier)
-            
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'assignment':
+                assignment = Assignment('assignment', [])
+                assignment.children.append(identifier)
                 Parser.tokenizer.selectNext()
                 ast_node = Parser.parseBoolExpression()
                 if Parser.tokenizer.next.tipoToken != 'semi_colon':
@@ -228,8 +313,24 @@ class Parser:
                 Parser.tokenizer.selectNext()
                 assignment.children.append(ast_node)
                 return assignment
+            elif Parser.tokenizer.next.tipoToken == 'OPEN':
+                funcCall = FuncCall(identifier.value, [])
+                Parser.tokenizer.selectNext()
+                while Parser.tokenizer.next.tipoToken != 'CLOSE':
+                    funcCall.children.append(Parser.parseBoolExpression())
+                    if Parser.tokenizer.next.valorToken == ',':
+                        Parser.tokenizer.selectNext()
+                    elif Parser.tokenizer.next.tipoToken == 'CLOSE':
+                        pass
+                    else:
+                        raise Exception('Expected "," or ")"')
+                Parser.tokenizer.selectNext()
+                if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                    raise Exception('Expected ";"')
+                return funcCall
+        
             else:
-                raise Exception(f'Variables must be followed by "="')
+                raise Exception(f'Identifiers must be followed by "=" or "("')
         
         elif Parser.tokenizer.next.tipoToken == 'print':
             Parser.tokenizer.selectNext()
@@ -285,6 +386,20 @@ class Parser:
                 Parser.tokenizer.selectNext()
                 if_node.children.append(Parser.parseBlock())
             return if_node
+
+        elif Parser.tokenizer.next.tipoToken == 'RETURN':
+            Parser.tokenizer.selectNext()
+            ast_node = Parser.parseBoolExpression()
+            if Parser.tokenizer.next.tipoToken != 'semi_colon':
+                raise Exception('Expected ";"')
+            Parser.tokenizer.selectNext()
+            return Return('return', [ast_node])
+        
+        elif Parser.tokenizer.next.tipoToken == 'open_curly_brace':
+            return Parser.parseBlock()
+        
+        elif Parser.tokenizer.next.tipoToken == 'var':
+            return Parser.parseVarDec()
         
         else:
             raise Exception('Expected statement')
@@ -311,6 +426,8 @@ class Parser:
         Parser.tokenizer = Tokenizer(source)
         st = SymbolTable({})
         ast_node = Parser.parseBlock()
+        main_call = FuncCall("main", [])
+        ast_node.children.append(main_call)
         if Parser.tokenizer.next.tipoToken != 'EOF':
             raise Exception ("Unconsumed tokens")
         return ast_node.Evaluate(st)
