@@ -1,4 +1,5 @@
-from SymbolTable import SymbolTable
+from compiler.SymbolTable import SymbolTable
+
 class Node():
 
     def __init__(self, value, children):
