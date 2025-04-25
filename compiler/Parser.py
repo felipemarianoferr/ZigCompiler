@@ -12,10 +12,13 @@ class Parser:
         while Parser.tokenizer.next.tipoToken != 'EOF':
             if Parser.tokenizer.next.tipoToken == 'var':
                 block.children.append(Parser.parseVarDec())
-                Parser.tokenizer.selectNext()
-            elif Parser.tokenizer.next.tipoToken == 'fn':
+                # Parser.tokenizer.selectNext()
+            elif Parser.tokenizer.next.tipoToken == 'FUNC':
+                # Parser.tokenizer.selectNext()
                 block.children.append(Parser.parseFunction())
-                Parser.tokenizer.selectNext()
+            else:
+                raise Exception("Token inesperado: " + Parser.tokenizer.next.valorToken)
+
         return block
             
     def parseVarDec():
@@ -55,7 +58,7 @@ class Parser:
                 raise Exception('Expected identifier after "var"')
 
     def parseFunction():
-        if Parser.tokenizer.next.tipoToken == 'fn':
+        if Parser.tokenizer.next.tipoToken == 'FUNC':
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'identifier':
                 funcDec = FuncDec(Parser.tokenizer.next.valorToken, [], None)
@@ -67,9 +70,10 @@ class Parser:
                         Parser.tokenizer.selectNext()
                         if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
                             funcDec.returnType = Parser.tokenizer.next.valorToken
-                            funcDec.children.append(Parser.parseBlock)
+                            Parser.tokenizer.selectNext()
+                            funcDec.children.append(Parser.parseBlock())
                             return funcDec
-                    elif Parser.tokenizer.next.tipoToken == 'identifier':
+                    elif Parser.tokenizer.next.tipoToken == 'identifier': #toaq text
                         while Parser.tokenizer.next.tipoToken != 'CLOSE':
                             if Parser.tokenizer.next.tipoToken == 'identifier':
                                 identifier = Identifier(Parser.tokenizer.next.valorToken, [])
@@ -91,13 +95,16 @@ class Parser:
                                 var_decl.children.append(identifier)
                                 funcDec.children.append(var_decl)
 
-                                Parser.tokenizer.selectNext()
+                                if Parser.tokenizer.next.tipoToken != 'CLOSE':
+                                    Parser.tokenizer.selectNext()
+
                             else:
                                 raise Exception('Expected identifier')
                         Parser.tokenizer.selectNext()
                         if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
                             funcDec.returnType = Parser.tokenizer.next.valorToken
-                            funcDec.children.append(Parser.parseBlock)
+                            Parser.tokenizer.selectNext()
+                            funcDec.children.append(Parser.parseBlock())
                             return funcDec
                         else:
                             raise Exception('Expected type')   
@@ -201,11 +208,11 @@ class Parser:
             Parser.tokenizer.selectNext()
             return str_val
         
-        elif Parser.tokenizer.next.tipoToken == 'identifier':
-            value = Parser.tokenizer.next.valorToken
-            identifier = Identifier(value, [])
-            Parser.tokenizer.selectNext()
-            return identifier
+        # elif Parser.tokenizer.next.tipoToken == 'identifier':
+        #     value = Parser.tokenizer.next.valorToken
+        #     identifier = Identifier(value, [])
+        #     Parser.tokenizer.selectNext()
+        #     return identifier
 
         elif Parser.tokenizer.next.tipoToken == 'PLUS':
             Parser.tokenizer.selectNext()
@@ -265,7 +272,7 @@ class Parser:
                 return funcCall
             
             else:
-                raise Exception(f'To call a function, identifier must be followed by "("')
+                return identifier
             
         else:
             raise Exception (f"symbol {Parser.tokenizer.next.tipoToken} not recognized")
@@ -287,7 +294,7 @@ class Parser:
                 return NoOp('NoOp', [])
             
             return block
-        
+
         raise Exception('Program must starts with "{"')
 
     def parseStatement():
