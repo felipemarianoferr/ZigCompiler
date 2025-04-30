@@ -91,6 +91,10 @@ class Parser:
                                 if Parser.tokenizer.next.valorToken not in [',', ')']:
                                     raise Exception('Expected "," or ")"')
                                 
+                                if Parser.tokenizer.next.valorToken == ',':
+                                    if Parser.tokenizer.next.tipoToken != 'identifier':
+                                        raise Exception('Expected identifier')
+                                    
                                 var_decl = VarDec(var_type, [])
                                 var_decl.children.append(identifier)
                                 funcDec.children.append(var_decl)
