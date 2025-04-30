@@ -91,10 +91,10 @@ class Parser:
                                 if Parser.tokenizer.next.valorToken not in [',', ')']:
                                     raise Exception('Expected "," or ")"')
                                 
-                                if Parser.tokenizer.next.valorToken == ',':
-                                    Parser.tokenizer.selectNext()
-                                    if Parser.tokenizer.next.tipoToken != 'identifier':
-                                        raise Exception('Expected identifier')
+                                # if Parser.tokenizer.next.valorToken == ',':
+                                #     Parser.tokenizer.selectNext()
+                                #     if Parser.tokenizer.next.tipoToken != 'identifier':
+                                #         raise Exception('Expected identifier')
                                     
                                 var_decl = VarDec(var_type, [])
                                 var_decl.children.append(identifier)
@@ -102,6 +102,9 @@ class Parser:
 
                                 if Parser.tokenizer.next.tipoToken != 'CLOSE':
                                     Parser.tokenizer.selectNext()
+                                    if Parser.tokenizer.next.tipoToken == ',':
+                                        if Parser.tokenizer.next.tipoToken != 'identifier':
+                                            raise Exception('Expected identifier')
 
                             else:
                                 raise Exception('Expected identifier')
