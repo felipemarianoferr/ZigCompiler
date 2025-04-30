@@ -56,65 +56,115 @@ class Parser:
                     return var_decl
             else:
                 raise Exception('Expected identifier after "var"')
-
     def parseFunction():
         if Parser.tokenizer.next.tipoToken == 'FUNC':
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'identifier':
                 funcDec = FuncDec(Parser.tokenizer.next.valorToken, [], None)
-                #funcDec.children.append(Parser.tokenizer.next.valorToken)
                 Parser.tokenizer.selectNext()
                 if Parser.tokenizer.next.tipoToken == 'OPEN':
                     Parser.tokenizer.selectNext()
-                    if Parser.tokenizer.next.tipoToken == 'CLOSE':
-                        Parser.tokenizer.selectNext()
-                        if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
-                            funcDec.returnType = Parser.tokenizer.next.valorToken
+
+                    while Parser.tokenizer.next.tipoToken != 'CLOSE':
+                        if Parser.tokenizer.next.tipoToken == 'identifier':
+                            identifier = Identifier(Parser.tokenizer.next.valorToken, [])
                             Parser.tokenizer.selectNext()
-                            funcDec.children.append(Parser.parseBlock())
-                            return funcDec
-                    elif Parser.tokenizer.next.tipoToken == 'identifier': #toaq text
-                        while Parser.tokenizer.next.tipoToken != 'CLOSE':
-                            if Parser.tokenizer.next.tipoToken == 'identifier':
-                                identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+                            if Parser.tokenizer.next.tipoToken != 'colon':
+                                raise Exception('Expected ":" after parameter name')
+                            Parser.tokenizer.selectNext()
+                            if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str', 'void']:
+                                raise Exception('Expected parameter type (i32, bool, str)')
+                            var_type = Parser.tokenizer.next.valorToken
+                            Parser.tokenizer.selectNext()
+                            var_decl = VarDec(var_type, [])
+                            var_decl.children.append(identifier)
+                            funcDec.children.append(var_decl)
+                            if Parser.tokenizer.next.tipoToken == 'comma':
                                 Parser.tokenizer.selectNext()
-                                if Parser.tokenizer.next.tipoToken != 'colon':
-                                    raise Exception('Expected ":"')
-                                Parser.tokenizer.selectNext()
-
-                                if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str', 'void']:
-                                    raise Exception('Expected type after ":"')
-                                
-                                var_type = Parser.tokenizer.next.valorToken
-                                Parser.tokenizer.selectNext()
-
-                                if Parser.tokenizer.next.valorToken not in [',', ')']:
-                                    raise Exception('Expected "," or ")"')
-                                                                    
-                                var_decl = VarDec(var_type, [])
-                                var_decl.children.append(identifier)
-                                funcDec.children.append(var_decl)
-
-                                if Parser.tokenizer.next.tipoToken != 'CLOSE':
-                                    Parser.tokenizer.selectNext()
-
+                                if Parser.tokenizer.next.tipoToken == 'CLOSE':
+                                    raise Exception("Syntax error: Unexpected ')' after comma in parameter list.")
+                                if Parser.tokenizer.next.tipoToken != 'identifier':
+                                    raise Exception("Syntax error: Expected identifier after comma in parameter list.")
+                            elif Parser.tokenizer.next.tipoToken == 'CLOSE':
+                                break
                             else:
-                                raise Exception('Expected identifier')
-                        Parser.tokenizer.selectNext()
-                        if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
-                            funcDec.returnType = Parser.tokenizer.next.valorToken
-                            Parser.tokenizer.selectNext()
-                            funcDec.children.append(Parser.parseBlock())
-                            return funcDec
+                                raise Exception('Expected "," or ")" after parameter definition')
                         else:
-                            raise Exception('Expected type')   
+                            raise Exception('Expected identifier for parameter name')
+                    Parser.tokenizer.selectNext()
+
+                    if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
+                        funcDec.returnType = Parser.tokenizer.next.valorToken
+                        Parser.tokenizer.selectNext()
+                        funcDec.children.append(Parser.parseBlock())
+                        return funcDec
                     else:
-                        raise Exception('Expected ")" or identifier')
+                        raise Exception('Expected return type after parameter list')
+                else:
+                    raise Exception("Expected '(' after function name")
             else:
                 raise Exception('Expected identifier after "fn"')
-                
         else:
             raise Exception('Expected "fn"')
+        
+    # def parseFunction():
+    #     if Parser.tokenizer.next.tipoToken == 'FUNC':
+    #         Parser.tokenizer.selectNext()
+    #         if Parser.tokenizer.next.tipoToken == 'identifier':
+    #             funcDec = FuncDec(Parser.tokenizer.next.valorToken, [], None)
+    #             #funcDec.children.append(Parser.tokenizer.next.valorToken)
+    #             Parser.tokenizer.selectNext()
+    #             if Parser.tokenizer.next.tipoToken == 'OPEN':
+    #                 Parser.tokenizer.selectNext()
+    #                 if Parser.tokenizer.next.tipoToken == 'CLOSE':
+    #                     Parser.tokenizer.selectNext()
+    #                     if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
+    #                         funcDec.returnType = Parser.tokenizer.next.valorToken
+    #                         Parser.tokenizer.selectNext()
+    #                         funcDec.children.append(Parser.parseBlock())
+    #                         return funcDec
+    #                 elif Parser.tokenizer.next.tipoToken == 'identifier': #toaq text
+    #                     while Parser.tokenizer.next.tipoToken != 'CLOSE':
+    #                         if Parser.tokenizer.next.tipoToken == 'identifier':
+    #                             identifier = Identifier(Parser.tokenizer.next.valorToken, [])
+    #                             Parser.tokenizer.selectNext()
+    #                             if Parser.tokenizer.next.tipoToken != 'colon':
+    #                                 raise Exception('Expected ":"')
+    #                             Parser.tokenizer.selectNext()
+
+    #                             if Parser.tokenizer.next.tipoToken not in ['i32', 'bool', 'str', 'void']:
+    #                                 raise Exception('Expected type after ":"')
+                                
+    #                             var_type = Parser.tokenizer.next.valorToken
+    #                             Parser.tokenizer.selectNext()
+
+    #                             # if Parser.tokenizer.next.valorToken not in [',', ')']:
+    #                             #     raise Exception('Expected "," or ")"')
+                                                                    
+    #                             var_decl = VarDec(var_type, [])
+    #                             var_decl.children.append(identifier)
+    #                             funcDec.children.append(var_decl)
+
+    #                             if Parser.tokenizer.next.tipoToken != 'CLOSE':
+    #                                 Parser.tokenizer.selectNext()
+
+    #                         else:
+    #                             raise Exception('Expected identifier')
+    #                     Parser.tokenizer.selectNext()
+    #                     if Parser.tokenizer.next.tipoToken in ['i32', 'bool', 'str', 'void']:
+    #                         funcDec.returnType = Parser.tokenizer.next.valorToken
+    #                         Parser.tokenizer.selectNext()
+    #                         funcDec.children.append(Parser.parseBlock())
+    #                         return funcDec
+    #                     else:
+    #                         raise Exception('Expected type')   
+    #                 else:
+    #                     raise Exception('Expected ")" or identifier')
+    #         else:
+    #             raise Exception('Expected identifier after "fn"')
+                
+    #     else:
+    #         raise Exception('Expected "fn"')
 
     def parseTerm():
         ast_node = Parser.parseFactor()
