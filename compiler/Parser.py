@@ -92,6 +92,7 @@ class Parser:
                                     raise Exception('Expected "," or ")"')
                                 
                                 if Parser.tokenizer.next.valorToken == ',':
+                                    Parser.tokenizer.selectNext()
                                     if Parser.tokenizer.next.tipoToken != 'identifier':
                                         raise Exception('Expected identifier')
                                     
