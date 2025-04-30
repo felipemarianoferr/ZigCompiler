@@ -101,8 +101,8 @@ class Parser:
                                 funcDec.children.append(var_decl)
 
                                 if Parser.tokenizer.next.tipoToken != 'CLOSE':
-                                    Parser.tokenizer.selectNext()
                                     if Parser.tokenizer.next.tipoToken == ',':
+                                        Parser.tokenizer.selectNext()
                                         if Parser.tokenizer.next.tipoToken != 'identifier':
                                             raise Exception('Expected identifier')
 
