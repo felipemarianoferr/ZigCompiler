@@ -62,7 +62,7 @@ class Parser:
             Parser.tokenizer.selectNext()
             if Parser.tokenizer.next.tipoToken == 'identifier':
                 funcDec = FuncDec(Parser.tokenizer.next.valorToken, [], None)
-                funcDec.children.append(Parser.tokenizer.next.valorToken)
+                #funcDec.children.append(Parser.tokenizer.next.valorToken)
                 Parser.tokenizer.selectNext()
                 if Parser.tokenizer.next.tipoToken == 'OPEN':
                     Parser.tokenizer.selectNext()
